@@ -1,9 +1,17 @@
 <resources>
     <string name="app_name">HealthTimer</string>
-    <string name="vibration_on">진동 켜짐</string>
-    <string name="vibration_off">진동 꺼짐</string>
-    <string name="default_rest_time">1:30</string>
+
+    <string name="key_shared_preferences">defaultSharedPreferences</string>
+    <string name="key_vibration">vibration</string>
+    <string name="key_rest_time">restTime</string>
+    <string name="vibration_on">진동 On</string>
+    <string name="vibration_off">진동 Off</string>
     <string name="reset">Reset</string>
     <string name="minus">-</string>
     <string name="set_discription">세트\n완료</string>
+    <string name="resume_timer">재개</string>
+    <string name="reset_timer">초기화</string>
+
+    <integer name="default_rest_time">90000</integer>
+    <integer name="zero">0</integer>
 </resources>
