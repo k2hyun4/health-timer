@@ -2,19 +2,21 @@ package tanned.bear
 
 import android.app.Dialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.databinding.DataBindingUtil
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.Spinner
 import android.widget.TextView
 import tanned.bear.databinding.ActivityMainBinding
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.concurrent.timer
 
 class MainActivity : AppCompatActivity() {
@@ -24,6 +26,9 @@ class MainActivity : AppCompatActivity() {
     private var mVibrationFlag: Boolean = false     //진동 설정 여부
     private var mRestTime: Long = 0     //설정된 휴식 시간
     private var mPauseDialog: Dialog? = null     //일시정지시 발생할 다이얼로그
+    private var mSetRestTimeDialog: Dialog? = null     //휴식시간 설정 다이얼로그
+    private var mMinuteSpinner: Spinner? = null
+    private var mSecondSpinner: Spinner? = null
 
     private var mRemainRestTime: Long = 0       //타이머를 통해 변경될 휴식 시간
     private var mTimerTask: Timer? = null       //휴식시간 변경 타이머
@@ -59,9 +64,23 @@ class MainActivity : AppCompatActivity() {
         mRestTime = mSharedPreferences.getLong(getString(R.string.key_rest_time), resources.getInteger(R.integer.default_rest_time).toLong())
         mRemainRestTime = mRestTime
         setRestTime(true, false)
-        setRestTime(false, false)
+        var simpleTime: String? = setRestTime(false, false)
 
+        initPauseDialog()
+
+        //휴식시간 설정 스피너 초기화
+        val minuteArray: Array<String> = resources.getStringArray(R.array.rest_time_minute)
+        val secondArray: Array<String> = resources.getStringArray(R.array.rest_time_second)
+        initSetRestTimeDialog(minuteArray, secondArray)
+        val restTimeList: List<String>? = simpleTime?.split(":")
+
+        mMinuteSpinner?.setSelection(minuteArray.indexOf(restTimeList?.get(0)))
+        mSecondSpinner?.setSelection(secondArray.indexOf(restTimeList?.get(1)))
+    }
+
+    fun initPauseDialog() {
         mPauseDialog = Dialog(this)
+
         mPauseDialog?.setContentView(R.layout.dialog_pause)
         mPauseDialog?.findViewById<TextView>(R.id.reset)?.setOnClickListener(View.OnClickListener {
             mPauseDialog?.cancel()
@@ -73,6 +92,36 @@ class MainActivity : AppCompatActivity() {
         })
 
         mPauseDialog?.create()
+    }
+
+    fun initSetRestTimeDialog(minuteArray: Array<String>, secondArray: Array<String>) {
+        val minuteList: ArrayList<String> = ArrayList()
+        val secondList: ArrayList<String> = ArrayList()
+
+        for (item: String in minuteArray) {
+            minuteList.add(item)
+        }
+
+        for (item: String in secondArray) {
+            secondList.add(item)
+        }
+
+        mSetRestTimeDialog = Dialog(this)
+
+        mSetRestTimeDialog?.setContentView(R.layout.dialog_set_rest_time)
+        mMinuteSpinner = mSetRestTimeDialog?.findViewById(R.id.change_minute)
+        mMinuteSpinner?.adapter = ArrayAdapter(this, R.layout.layout_custom_spinner, minuteList)
+        mSecondSpinner = mSetRestTimeDialog?.findViewById(R.id.change_second)
+        mSecondSpinner?.adapter = ArrayAdapter(this, R.layout.layout_custom_spinner, secondList)
+
+        mSetRestTimeDialog?.findViewById<Button>(R.id.btn_set)?.setOnClickListener({
+            onClickSetResetTime()
+            mSetRestTimeDialog?.cancel()
+        })
+        mSetRestTimeDialog?.findViewById<Button>(R.id.btn_cancel)?.setOnClickListener({
+            mSetRestTimeDialog?.cancel()
+        })
+        mSetRestTimeDialog?.create()
     }
 
     //1) 센터 클릭, 타이머 중 센터 클릭
@@ -112,7 +161,7 @@ class MainActivity : AppCompatActivity() {
 
     //4) 상단부 - 휴식시간 설정 팝업
     fun onClickShowRestTimePopup() {
-
+        mSetRestTimeDialog?.show()
     }
 
     //4) 상단부 - 세트수 줄이기
@@ -130,9 +179,16 @@ class MainActivity : AppCompatActivity() {
         setDisplaySetCount()
     }
 
-    //5) 설정 팝업 - 휴식시간 설정
+    //5) 설정 - 휴식시간 설정
     fun onClickSetResetTime() {
+        val minute: String = mMinuteSpinner?.selectedItem.toString()
+        val second: String = mSecondSpinner?.selectedItem.toString()
+        mRestTime = convertStrToTime(minute, second)
+        setRestTime(false, false)
 
+        if (!mRunningTimerFlag) {
+            setRestTime(true, false)
+        }
     }
 
     fun setDisplaySetCount() = mBinding.displaySetCount.setText(mSetCount.toString())
@@ -164,7 +220,14 @@ class MainActivity : AppCompatActivity() {
         return String.format("%02d:%02d:%02d", minute, second, milis)
     }
 
-    fun setRestTime(onDisplayFlag: Boolean, forTimerFlag: Boolean) {
+    fun convertStrToTime(minute: String, second: String): Long {
+        val oneMinute: Long = 60000
+        return minute.toLong() * oneMinute + second.toLong() * 1000
+    }
+
+    fun setRestTime(onDisplayFlag: Boolean, forTimerFlag: Boolean): String? {
+        var result: String? = null
+
         if (onDisplayFlag) {
             if (forTimerFlag) {
                 runOnUiThread {
@@ -175,8 +238,11 @@ class MainActivity : AppCompatActivity() {
             }
 
         } else {
-            mBinding.setRestTime.setText(convertTimeToStr(mRestTime, false))
+            result = convertTimeToStr(mRestTime, false)
+            mBinding.setRestTime.setText(result)
         }
+
+        return result
     }
 
     fun stopTimer(pauseFlag: Boolean) {
@@ -215,7 +281,7 @@ class MainActivity : AppCompatActivity() {
         if (defaultFlag) {
             colorId = R.color.white
         } else {
-            colorId = R.color.magenta
+            colorId = R.color.lightGreen
         }
 
         val colorInt: Int
@@ -228,4 +294,9 @@ class MainActivity : AppCompatActivity() {
 
         mBinding.btnCenter.setBackgroundColor(colorInt)
     }
+}
+
+class Time {
+    private var minute: String? = null
+    private var second: String? = null
 }

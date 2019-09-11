@@ -9,9 +9,27 @@
     <string name="reset">Reset</string>
     <string name="minus">-</string>
     <string name="set_discription">세트\n완료</string>
-    <string name="resume_timer">재개</string>
-    <string name="reset_timer">초기화</string>
+    <string name="resume_timer">Resume</string>
+    <string name="reset_timer">Reset</string>
+    <string name="set_rest_time">완료</string>
+    <string name="cancel_rest_time">취소</string>
 
     <integer name="default_rest_time">90000</integer>
     <integer name="zero">0</integer>
+    
+    <string-array name="rest_time_minute">
+        <item>00</item>
+        <item>01</item>
+        <item>02</item>
+        <item>03</item>
+    </string-array>
+
+    <string-array name="rest_time_second">
+        <item>00</item>
+        <item>10</item>
+        <item>20</item>
+        <item>30</item>
+        <item>40</item>
+        <item>50</item>
+    </string-array>
 </resources>
