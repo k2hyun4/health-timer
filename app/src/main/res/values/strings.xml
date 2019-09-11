@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HealthTimer</string>
+    <string name="app_name">HealthRest</string>
 
     <string name="key_shared_preferences">defaultSharedPreferences</string>
     <string name="key_vibration">vibration</string>
