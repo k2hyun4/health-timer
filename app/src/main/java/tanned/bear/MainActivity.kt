@@ -187,6 +187,7 @@ class MainActivity : AppCompatActivity() {
         setRestTime(false, false)
 
         if (!mRunningTimerFlag) {
+            mRemainRestTime = mRestTime
             setRestTime(true, false)
         }
     }
